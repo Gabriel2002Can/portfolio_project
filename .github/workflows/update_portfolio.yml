@@ -20,6 +20,7 @@ jobs:
       - name: Fetch all public repositories
         run: |
           curl -s https://api.github.com/users/Gabriel2002Can/repos | jq '.[] | {name, html_url}' > repos.json
+          cat repos.json
 
       - name: Update the portfolio HTML
         run: |
