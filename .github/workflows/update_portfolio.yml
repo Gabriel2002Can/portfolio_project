@@ -63,7 +63,7 @@ jobs:
 
       - name: Commit any local changes before pulling
         run: |
-          git add .
+          git add index.html repos.json
           git commit -m "Committing local changes before pull" || echo "No changes to commit"
 
       - name: Pull latest changes from remote (with rebase)
