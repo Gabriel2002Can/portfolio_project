@@ -19,15 +19,21 @@ jobs:
 
       - name: Fetch all public repositories
         run: |
-          curl -s https://api.github.com/users/Gabriel2002Can/repos | jq '.[] | {name, html_url}' > repos.json
-          cat repos.json
+          curl -s https://api.github.com/users/Gabriel2002Can/repos | jq -s '[.[][]]' > repos.json
+          cat repos.json  # Print out the content of repos.json to debug
 
       - name: Update the portfolio HTML
         run: |
-          echo "<!DOCTYPE html>" > index.html
-          echo "<html><body><h1>My Public Repositories</h1><ul>" >> index.html
-          jq -r '.[] | "<li><a href=\"\(.html_url)\">\(.name)</a></li>"' repos.json >> index.html
-          echo "</ul></body></html>" >> index.html
+          # Check if repos.json has valid content
+          if jq empty repos.json; then
+            echo "<!DOCTYPE html>" > index.html
+            echo "<html><body><h1>My Public Repositories</h1><ul>" >> index.html
+            jq -r '.[] | "<li><a href=\"\(.html_url)\">\(.name)</a></li>"' repos.json >> index.html
+            echo "</ul></body></html>" >> index.html
+          else
+            echo "<!DOCTYPE html>" > index.html
+            echo "<html><body><h1>No public repositories found.</h1></body></html>" >> index.html
+          fi
 
       - name: Commit and push changes
         run: |
