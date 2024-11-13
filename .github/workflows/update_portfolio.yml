@@ -1,10 +1,11 @@
 name: Update Portfolio
 
 on:
-  # Trigger on push to the "main" branch or manual workflow dispatch
   push:
     branches: [ "main" ]
   workflow_dispatch:
+  repository_dispatch:
+    types: [repository_created]
 
 jobs:
   update-portfolio:
@@ -14,26 +15,49 @@ jobs:
       - name: Check out the repository
         uses: actions/checkout@v4
 
-      - name: Install jq (just in case)
-        run: sudo apt-get update && sudo apt-get install -y jq
-
       - name: Fetch all public repositories
         run: |
           curl -s https://api.github.com/users/Gabriel2002Can/repos | jq -s '[.[][]]' > repos.json
-          cat repos.json  # Print out the content of repos.json to debug
 
-      - name: Update the portfolio HTML
+      - name: Update the portfolio HTML with JS filter
         run: |
-          # Check if repos.json has valid content
-          if jq empty repos.json; then
-            echo "<!DOCTYPE html>" > index.html
-            echo "<html><body><h1>My Public Repositories</h1><ul>" >> index.html
-            jq -r '.[] | "<li><a href=\"\(.html_url)\">\(.name)</a></li>"' repos.json >> index.html
-            echo "</ul></body></html>" >> index.html
-          else
-            echo "<!DOCTYPE html>" > index.html
-            echo "<html><body><h1>No public repositories found.</h1></body></html>" >> index.html
-          fi
+          echo "<!DOCTYPE html>" > index.html
+          echo "<html><head><title>My Public Repositories</title>" >> index.html
+          echo "<style>body { font-family: Arial, sans-serif; }</style>" >> index.html
+          echo "</head><body>" >> index.html
+          echo "<h1>My Public Repositories</h1>" >> index.html
+          echo "<input type='text' id='filter' placeholder='Search repositories...' onkeyup='filterRepositories()'>" >> index.html
+          echo "<div id='repositories'></div>" >> index.html
+
+          # JavaScript to fetch and display data
+          echo "<script>" >> index.html
+          echo "const repos = $(cat repos.json);" >> index.html
+          echo "const repositoriesContainer = document.getElementById('repositories');" >> index.html
+          echo "const filterInput = document.getElementById('filter');" >> index.html
+
+          # Function to render repositories
+          echo "function renderRepositories(repos) {" >> index.html
+          echo "  repositoriesContainer.innerHTML = '';" >> index.html
+          echo "  repos.forEach(repo => {" >> index.html
+          echo "    const div = document.createElement('div');" >> index.html
+          echo "    div.classList.add('repo');" >> index.html
+          echo "    div.innerHTML = `<h3><a href='${repo.html_url}' target='_blank'>${repo.name}</a></h3><p>${repo.description || 'No description available'}</p>`;" >> index.html
+          echo "    repositoriesContainer.appendChild(div);" >> index.html
+          echo "  });" >> index.html
+          echo "}" >> index.html
+
+          # Initial render
+          echo "renderRepositories(repos);" >> index.html
+
+          # Function to filter repositories based on the search input
+          echo "function filterRepositories() {" >> index.html
+          echo "  const searchTerm = filterInput.value.toLowerCase();" >> index.html
+          echo "  const filteredRepos = repos.filter(repo => repo.name.toLowerCase().includes(searchTerm));" >> index.html
+          echo "  renderRepositories(filteredRepos);" >> index.html
+          echo "}" >> index.html
+
+          echo "</script>" >> index.html
+          echo "</body></html>" >> index.html
 
       - name: Commit and push changes
         run: |
