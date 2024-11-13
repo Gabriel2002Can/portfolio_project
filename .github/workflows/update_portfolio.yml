@@ -61,8 +61,12 @@ jobs:
           echo "</script>" >> index.html
           echo "</body></html>" >> index.html
 
-          
-        
+
+      - name: Commit any local changes before pulling
+        run: |
+           git add .
+           git commit -m "Committing local changes before pull" || echo "No changes to commit"
+
       - name: Pull latest changes from remote (with rebase)
         run: |
           git fetch origin
