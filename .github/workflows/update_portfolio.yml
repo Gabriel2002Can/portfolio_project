@@ -19,7 +19,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
         run: |
-          curl -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/user/repos
+          curl -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/users/Gabriel2002Can/repos
           | jq '.[] | {name, html_url}' > repos.json
 
       - name: Update the portfolio HTML
