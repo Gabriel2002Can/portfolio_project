@@ -17,27 +17,21 @@ jobs:
       - name: Install jq (just in case)
         run: sudo apt-get update && sudo apt-get install -y jq
 
-      - name: Fetch all repositories for the user
-        env:
-          GITHUB_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
+      - name: Fetch all public repositories
         run: |
-          curl -H "Authorization: token $GITHUB_TOKEN" \
-          https://api.github.com/users/Gabriel2002Can/repos \
-          | jq '.[] | {name, html_url}' > repos.json
+          curl -s https://api.github.com/users/Gabriel2002Can/repos | jq '.[] | {name, html_url}' > repos.json
 
       - name: Update the portfolio HTML
         run: |
           echo "<!DOCTYPE html>" > index.html
-          echo "<html><body><h1>My Repositories</h1><ul>" >> index.html
+          echo "<html><body><h1>My Public Repositories</h1><ul>" >> index.html
           jq -r '.[] | "<li><a href=\"\(.html_url)\">\(.name)</a></li>"' repos.json >> index.html
           echo "</ul></body></html>" >> index.html
 
       - name: Commit and push changes
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.html
-          git commit -m "Update portfolio with new repositories"
+          git commit -m "Update portfolio with public repositories"
           git push
